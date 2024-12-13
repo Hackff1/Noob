@@ -2,24 +2,16 @@ import requests
 import random
 import time
 
-
-# Initialize a counter for successful 200 responses
-success_count = 0
-
-# Store multiple tg_id values
-tg_ids = ["7302925429"]  # Default tg_id list
-
 def generate_random_chat_instance():
     """Generate a random chat_instance as a large numeric string."""
     return str(random.randint(10**18, 10**19 - 1))
 
-def fetch_ads(tg_id):
-    """Fetch ads and handle the response for a specific tg_id."""
-    global success_count
+def fetch_ads():
+    """Fetch ads and handle the response."""
     url = 'https://api.adsgram.ai/adv'
     params = {
         'blockId': '4853',
-        'tg_id': tg_id,
+        'tg_id': '7302925429',
         'tg_platform': 'ios',
         'platform': 'Linux armv81',
         'language': 'en',
@@ -47,8 +39,6 @@ def fetch_ads(tg_id):
     response = requests.get(url, headers=headers, params=params)
 
     if response.status_code == 200:
-        success_count += 1
-        print(f"[tg_id: {tg_id}] Successful ads watch: {success_count}")
         try:
             # Parse the JSON response
             data = response.json()
@@ -64,57 +54,18 @@ def fetch_ads(tg_id):
             if reward_url:
                 # Make the follow-up request to the reward URL
                 reward_response = requests.get(reward_url)
-                print(f"[tg_id: {tg_id}] Reward claimed for ad.")
+                print("Reward URL Status Code:", reward_response.status_code)
+                print("Reward URL Response Body:", reward_response.text)
             else:
-                print(f"[tg_id: {tg_id}] Reward URL not found in the response.")
+                print("Reward URL not found in the response.")
         except ValueError:
-            print(f"[tg_id: {tg_id}] Failed to parse JSON response.")
+            print("Failed to parse JSON response.")
     else:
-        print(f"[tg_id: {tg_id}] Initial request failed with status code {response.status_code}")
+        print(f"Initial request failed with status code {response.status_code}")
         print(response.text)
 
-    # Notify when a milestone is reached
-    if success_count % 20 == 0:
-        print(f"Milestone reached: {success_count} successful responses.")
-
-def add_tg_id():
-    """Add a new tg_id to the list."""
-    global tg_ids
-    new_tg_id = input("Enter a new tg_id: ")
-    if new_tg_id.isdigit():
-        tg_ids.append(new_tg_id)
-        print(f"tg_id {new_tg_id} added to the list.")
-    else:
-        print("Invalid tg_id. Please enter a numeric value.")
-
-def list_tg_ids():
-    """List all stored tg_ids."""
-    global tg_ids
-    print("Currently stored tg_ids:")
-    for idx, tg_id in enumerate(tg_ids, start=1):
-        print(f"{idx}. {tg_id}")
-
-# Main menu
+# Infinite loop with a 25-second delay
 while True:
-    print("\n1. Start fetching ads for all tg_ids")
-    print("2. Add a new tg_id")
-    print("3. List all tg_ids")
-    print("4. Exit")
-    choice = input("Enter your choice: ")
-
-    if choice == "1":
-        print("Starting ad fetching for all tg_ids...")
-        while True:
-            for tg_id in tg_ids:
-                fetch_ads(tg_id)
-            print("Waiting for 25 seconds before the next cycle...")
-            time.sleep(25)
-    elif choice == "2":
-        add_tg_id()
-    elif choice == "3":
-        list_tg_ids()
-    elif choice == "4":
-        print("Exiting...")
-        break
-    else:
-        print("Invalid choice. Please try again.")
+    fetch_ads()
+    print("Waiting for 25 seconds before the next request...")
+    time.sleep(25)
